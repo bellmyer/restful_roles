@@ -7,23 +7,28 @@ module Bellmyer
     module RestfulRolesMethods
       def require_role(required_role, options={})
         unless included_modules.include? InstanceMethods
-          class_inheritable_accessor :required_role
+          class_inheritable_accessor :required_roles
           class_inheritable_accessor :options
+          
+          self.required_roles = {}
           
           include InstanceMethods
         end
         
-        self.required_role = required_role
-        self.options = options
+        if options[:only]
+          Array(options[:only]).each {|action| self.required_roles[action.to_sym] = required_role}
+        else
+          self.required_roles[:all_roles] = required_role
+        end
       end
     end
     
     module InstanceMethods
       def authorized?
-        if (self.options[:only] && Array(self.options[:only]).map{|o| o.to_sym}.include?(action_name.to_sym)) ||
-            (self.options[:except] && !Array(self.options[:except]).map{|o| o.to_sym}.include?(action_name.to_sym)) ||
-            (self.options[:only].nil? && self.options[:except].nil?)
-          current_user && current_user.authorized?(self.required_role)
+        required_role = self.required_roles[action_name.to_sym] || self.required_roles[:all_roles]
+        
+        if required_role
+          current_user && current_user.authorized?(required_role)
         else
           true
         end

@@ -1,0 +1,70 @@
+h1. The Easiest Way to Implement Roles for Restful Authentication
+
+Has somebody done this already?  If so, please let me know.  I couldn't find
+anything as hands-off as I'd like for managing roles with the
+restful_authentication plugin.  So I made one.
+
+h2. Shameless Plug
+
+If you like what you see, why not recommend me on "WorkingWithRails?":http://www.workingwithrails.com/person/14647-jaime-bellmyer
+
+h2. What?
+
+restful_roles sits on top of restful_authentication like a small child atop his
+father's shoulders.  Proud and triumphant, even though most of the accomplishment
+isn't really his.
+
+Quite simply, restful_roles is the easiest roles management you can possibly have.
+It assumes that your roles are sequentially more permissive.  So if you have
+member, admin, and owner roles, admins can see all the member stuff, and owners
+can see everything.
+
+h2. How?
+
+h3. The Model
+
+Add this to the model that is using restful_authentication:
+
+<pre>
+# app/models/user.rb
+has_roles ['Member', 'Admin', 'Owner']
+</pre>
+
+Any users you create will be the first role by default - Members in this case.
+Roles get more exclusive from left to right.
+
+h3. Controllers
+
+You can add role requirements to any controllers that use require_login:
+
+<pre>
+# app/controllers/widgets_controller.rb
+
+require_role 'Member', :only=>[:index, :show]
+require_role 'Admin',  :only=>[:new, :create, :edit, :update]
+require_role 'Owner',  :only=>:destroy
+
+before_filter :require_login
+</pre>
+
+require_role accepts a role, and an optional :only list.  In this case, everybody 
+has to be logged in.  Members can see index/show pages, Admins can see those 
+plus the creation/updating pages, and Owners can do all seven RESTful actions.
+
+h4. Catch-all
+
+If you don't specify an :only list, the role requirement will be assigned
+like a catch-all, to any unclaimed methods:
+
+<pre>
+# app/controllers/widgets_controller.rb
+
+require_role 'Member', :only=>[:index, :show]
+require_role 'Admin',  :only=>[:new, :create, :edit, :update]
+require_role 'Owner'
+
+before_filter :require_login
+</pre>
+
+In this version, Owner status is still required for the destroy action. But it
+also covers any other actions you come up with.
