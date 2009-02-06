@@ -35,36 +35,55 @@ Roles get more exclusive from left to right.
 
 h3. Controllers
 
-You can add role requirements to any controllers that use require_login:
+You can add role requirements to any controllers that use require_login. 
+require_role accepts a role, and an optional :only list.  
 
-<pre>
-# app/controllers/widgets_controller.rb
-
-require_role 'Member', :only=>[:index, :show]
-require_role 'Admin',  :only=>[:new, :create, :edit, :update]
-require_role 'Owner',  :only=>:destroy
-
-before_filter :require_login
-</pre>
-
-require_role accepts a role, and an optional :only list.  In this case, everybody 
-has to be logged in.  Members can see index/show pages, Admins can see those 
-plus the creation/updating pages, and Owners can do all seven RESTful actions.
+Of course, you have to be a logged-in user to have a role, and so if you don't
+require_login for an action, then the role checking will never happen for that
+action.  It works by hooking into restful_authentication's authorized? method.
 
 h4. Catch-all
 
-If you don't specify an :only list, the role requirement will be assigned
-like a catch-all, to any unclaimed methods:
+<pre>
+# app/controllers/widgets_controller.rb
+
+before_filter :require_login
+
+require_role 'Admin'
+</pre>
+
+This requires Admin or greater privileges to use any action in the controller.
+
+h4. Only Some
 
 <pre>
 # app/controllers/widgets_controller.rb
+
+before_filter :require_login
 
 require_role 'Member', :only=>[:index, :show]
 require_role 'Admin',  :only=>[:new, :create, :edit, :update]
 require_role 'Owner'
-
-before_filter :require_login
 </pre>
 
-In this version, Owner status is still required for the destroy action. But it
-also covers any other actions you come up with.
+In this case, you have to be at *least* a Member to see index/show pages, at 
+least an Admin to see those plus the creation/updating pages, and only Owners 
+can do anything else.
+
+h4. Except Some
+
+<pre>
+# app/controllers/widgets_controller.rb
+
+before_filter :require_login
+
+require_role 'Admin', :except=>[:index, :show]
+</pre>
+
+In this case, require Admin or greater privileges for everything except the 
+harmless (in this case) index and show actions.
+
+CAVEAT: the :except option trumps all else, so there's no reason (or ability) to
+combine it with other require_role calls.  Doing so would make the developer's
+intentions unclear.
+
