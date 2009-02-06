@@ -85,5 +85,5 @@ harmless (in this case) index and show actions.
 
 CAVEAT: the :except option trumps all else, so there's no reason (or ability) to
 combine it with other require_role calls.  Doing so would make the developer's
-intentions unclear.
+intentions unclear anyway, and the whole point of this plugin is simplicity.
 
