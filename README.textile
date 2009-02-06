@@ -80,7 +80,7 @@ before_filter :require_login
 require_role 'Admin', :except=>[:index, :show]
 </pre>
 
-In this case, require Admin or greater privileges for everything except the 
+The above example requires Admin or greater privileges for everything except the 
 harmless (in this case) index and show actions.
 
 CAVEAT: the :except option trumps all else, so there's no reason (or ability) to
