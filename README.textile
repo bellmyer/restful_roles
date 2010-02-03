@@ -45,11 +45,25 @@ Add this to the model that is using restful_authentication:
 
 <pre>
 # app/models/user.rb
-has_roles ['Member', 'Admin', 'Owner']
+has_roles :member, :admin, :owner
 </pre>
 
-Any users you create will be the first role by default - Members in this case.
+Any users you create will be the first role by default - :member in this case.
 Roles get more exclusive from left to right.
+
+Now you can do this:
+
+<pre>
+current_user.admin?
+</pre>
+
+and it will return true only if the user's role is admin OR HIGHER.  Therefore, if your lowest role is :member, it would be pointless to call:
+
+<pre>
+current_user.member?
+</pre>
+
+because every user would be at least a member, and it would always return true.
 
 h3. Controllers
 
@@ -67,7 +81,7 @@ h4. Catch-all
 
 before_filter :login_required
 
-require_role 'Admin'
+require_role :admin
 </pre>
 
 This requires Admin or greater privileges to use any action in the controller.
@@ -79,9 +93,9 @@ h4. Only Some
 
 before_filter :login_required
 
-require_role 'Member', :only=>[:index, :show]
-require_role 'Admin',  :only=>[:new, :create, :edit, :update]
-require_role 'Owner'
+require_role :member, :only=>[:index, :show]
+require_role :admin,  :only=>[:new, :create, :edit, :update]
+require_role :owner
 </pre>
 
 In this case, you have to be at *least* a Member to see index/show pages, at 
@@ -95,7 +109,7 @@ h4. Except Some
 
 before_filter :login_required
 
-require_role 'Admin', :except=>[:index, :show]
+require_role :admin, :except=>[:index, :show]
 </pre>
 
 The above example requires Admin or greater privileges for everything except the 

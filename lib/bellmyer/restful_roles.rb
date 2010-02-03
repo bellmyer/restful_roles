@@ -5,7 +5,8 @@ module Bellmyer
     end
     
     module RoleMethods
-      def has_roles(roles=['Member', 'Admin'])
+      def has_roles(*roles)
+        roles ||= [:member]
         unless included_modules.include? InstanceMethods
           class_inheritable_accessor :roles
           extend ClassMethods
@@ -28,6 +29,8 @@ module Bellmyer
       def authorized?(requested_role)
         self.class.roles.index(self.role) >= self.class.roles.index(requested_role)
       end
+
+      self.class.roles.each{|r| eval "def #{r}?\n\tauthorized?(:#{r})\nend"}
     end
   end
 end
